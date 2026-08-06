@@ -1,0 +1,122 @@
+{
+  "schema_version": 1,
+  "kind": "headers",
+  "angle_commit": "c24d9971269a878a221238a5923abdcc933fa2e9",
+  "files": [
+    {
+      "path": "EGL/.clang-format",
+      "size": 42,
+      "sha256": "32473c8636a59d56b9105f903e30b0c3447d9914fc9efba30d6fd88adc36e055"
+    },
+    {
+      "path": "EGL/egl.h",
+      "size": 19628,
+      "sha256": "271f7820c87cd2dddd13be5c4f93558d4e000a303f73199d1cd3965fd0c5e140"
+    },
+    {
+      "path": "EGL/eglext.h",
+      "size": 74350,
+      "sha256": "97abb9ceb149534da902cc9979807df1fb1101b7d1bfeacc066cb1366896d860"
+    },
+    {
+      "path": "EGL/eglext_angle.h",
+      "size": 22247,
+      "sha256": "0f2c663572a0232af2b3042a4b0c835554489fc826dca8cbd0deeddac35eda38"
+    },
+    {
+      "path": "EGL/eglplatform.h",
+      "size": 5620,
+      "sha256": "8b5e53b91d7be7a13212699b2d2f150cafe1b201b97a3a7de7ab9aa61bac807e"
+    },
+    {
+      "path": "GLES/.clang-format",
+      "size": 42,
+      "sha256": "32473c8636a59d56b9105f903e30b0c3447d9914fc9efba30d6fd88adc36e055"
+    },
+    {
+      "path": "GLES/README.md",
+      "size": 1393,
+      "sha256": "912c080a6ac7b8314fbd29883b9402f1bfc18b203ec43fb3d30f62ee1105680b"
+    },
+    {
+      "path": "GLES/egl.h",
+      "size": 951,
+      "sha256": "3f77ea943d64aa8c06343b98a79e7a0d3f79b9732ac169377e62a06439d9420c"
+    },
+    {
+      "path": "GLES/gl.h",
+      "size": 45571,
+      "sha256": "ffd8e0c3e2d1c16664f0e2d24f9ace6895a9f5bb1b40aaa5b76c90dee16daa08"
+    },
+    {
+      "path": "GLES/glext.h",
+      "size": 54400,
+      "sha256": "fcc43362cdaa561f1cce83dc3c4fbb56f18a50f3dde25c9ef5002ba8ade33980"
+    },
+    {
+      "path": "GLES/glplatform.h",
+      "size": 1190,
+      "sha256": "9ee67123f24099ef2f4e8939ae0502ffeaea07a20379e5ee190151be08724cf4"
+    },
+    {
+      "path": "GLES2/.clang-format",
+      "size": 42,
+      "sha256": "32473c8636a59d56b9105f903e30b0c3447d9914fc9efba30d6fd88adc36e055"
+    },
+    {
+      "path": "GLES2/gl2.h",
+      "size": 43586,
+      "sha256": "b379b340f443b695c6e97f0439b96d7ad9c375ad1798d848415a0122ff3f700d"
+    },
+    {
+      "path": "GLES2/gl2ext.h",
+      "size": 255687,
+      "sha256": "dc591c26c422ae9984bb34dc73e8a8146e7ca4fb399b0de0e30342f50ed0daaf"
+    },
+    {
+      "path": "GLES2/gl2ext_angle.h",
+      "size": 52342,
+      "sha256": "ab2dc4691fd858792c94e5933685d1d7a5760d4eb9a5ac217f7e5a1825699a0e"
+    },
+    {
+      "path": "GLES2/gl2platform.h",
+      "size": 669,
+      "sha256": "77e04af2c5a32f3491d1462a14c4dad29d66b9ae9bf3cec97cf4178d3666a7a3"
+    },
+    {
+      "path": "GLES3/.clang-format",
+      "size": 42,
+      "sha256": "32473c8636a59d56b9105f903e30b0c3447d9914fc9efba30d6fd88adc36e055"
+    },
+    {
+      "path": "GLES3/gl3.h",
+      "size": 82792,
+      "sha256": "56d8d357042dacce95bc7157be615c414837efb3556f7ea927eab093af6ec32b"
+    },
+    {
+      "path": "GLES3/gl31.h",
+      "size": 107899,
+      "sha256": "e628393cd48b4bb5c3b3ab68414fbe601a90949466384c5d2e023eba1b057d54"
+    },
+    {
+      "path": "GLES3/gl32.h",
+      "size": 129080,
+      "sha256": "f8df949c2700c91d8d6ba96dec6c0470f64881bd4ab3d72cdf9e8ed377b84a5e"
+    },
+    {
+      "path": "GLES3/gl3platform.h",
+      "size": 669,
+      "sha256": "d0bc70b9c71322ce46ba667dffd1845603c71d17e41e5d040fc2619725324b29"
+    },
+    {
+      "path": "KHR/.clang-format",
+      "size": 42,
+      "sha256": "32473c8636a59d56b9105f903e30b0c3447d9914fc9efba30d6fd88adc36e055"
+    },
+    {
+      "path": "KHR/khrplatform.h",
+      "size": 10569,
+      "sha256": "03e9b2fb1a06a67dfcedb8b67da62cbd508c4cd2c4c913dbe3c4b5813213105a"
+    }
+  ]
+}

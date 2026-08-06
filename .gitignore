@@ -1,0 +1,7 @@
+/.idea/
+/.local/
+/angle/
+**/__pycache__/
+*.pyc
+/depot_tools
+.DS_Store

@@ -1,0 +1,83 @@
+{
+  "schema_version": 1,
+  "angle_commit": "c24d9971269a878a221238a5923abdcc933fa2e9",
+  "platform": "linux",
+  "target_cpu": "x64",
+  "configuration": "release",
+  "gn_args": [
+    "angle_build_tests=false",
+    "angle_enable_cl=false",
+    "angle_enable_gl=false",
+    "angle_enable_null=false",
+    "angle_enable_swiftshader=true",
+    "angle_enable_vulkan=true",
+    "angle_enable_wgpu=false",
+    "is_clang=true",
+    "is_component_build=false",
+    "is_debug=false",
+    "symbol_level=0",
+    "target_cpu=\"x64\""
+  ],
+  "runtime_artifacts": [
+    "bin/libvk_swiftshader.so",
+    "bin/vk_swiftshader_icd.json"
+  ],
+  "shared_headers": "include",
+  "files": [
+    {
+      "path": "bin/libvk_swiftshader.so",
+      "size": 6484856,
+      "sha256": "7e7fc61f8c65f111237be8da1fd4bfa47c4b6e9ba2449982b8aef8227a693bf7"
+    },
+    {
+      "path": "bin/vk_swiftshader_icd.json",
+      "size": 107,
+      "sha256": "c9eef28b6b984fec220ef0abfecc40b502d46946706e47bfe97707027cb818bd"
+    },
+    {
+      "path": "lib/libEGL.so",
+      "size": 405840,
+      "sha256": "707414ed5887a7faedf3e100f4d3284918e86b9921a93cdc06f11f4224189673"
+    },
+    {
+      "path": "lib/libGLESv2.so",
+      "size": 8572120,
+      "sha256": "24d1983d73b16f1b43f7a561f6290499ef54e3aa86c8c78fd20b71d844f1d1e5"
+    },
+    {
+      "path": "licenses/ANGLE.txt",
+      "size": 1675,
+      "sha256": "54aff7276217df9f6b5181613999d208c9e40d2b1d51bf55217837e6871a4a63"
+    },
+    {
+      "path": "licenses/third-party/ASTC-Encoder.txt",
+      "size": 10139,
+      "sha256": "494accc32e50eb523a0e384d0ae6d4b702db867a89d6971216760e92b240ee12"
+    },
+    {
+      "path": "licenses/third-party/SPIRV-Tools.txt",
+      "size": 11358,
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+    },
+    {
+      "path": "licenses/third-party/Vulkan-Loader.txt",
+      "size": 11661,
+      "sha256": "43c0a37e6a0fa7ff3c843b3ec5a4fac84b712558ddac103fbd4c1649662a9ece"
+    },
+    {
+      "path": "licenses/third-party/Vulkan-Memory-Allocator.txt",
+      "size": 1099,
+      "sha256": "cdb520614db3ec62e667ece01e64e6afa21948fa51e85e748b1494597a7be907"
+    },
+    {
+      "path": "licenses/third-party/xxHash.txt",
+      "size": 1415,
+      "sha256": "a2973411d278045bde3c7161b911e0680d53e2d73d6457c77068d2e55d816d67"
+    },
+    {
+      "path": "licenses/third-party/zlib.txt",
+      "size": 1002,
+      "sha256": "e32ff4e00d9d94930537635291da39e7e612703334bf6fde8c7f1686fe8a45a2"
+    }
+  ]
+}

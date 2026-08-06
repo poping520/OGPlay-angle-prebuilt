@@ -1,0 +1,101 @@
+{
+  "schema_version": 1,
+  "angle_commit": "c24d9971269a878a221238a5923abdcc933fa2e9",
+  "platform": "windows",
+  "target_cpu": "x64",
+  "configuration": "release",
+  "gn_args": [
+    "angle_build_tests=false",
+    "angle_enable_cl=false",
+    "angle_enable_d3d11=true",
+    "angle_enable_gl=false",
+    "angle_enable_null=false",
+    "angle_enable_swiftshader=false",
+    "angle_enable_vulkan=true",
+    "angle_enable_wgpu=false",
+    "is_clang=false",
+    "is_component_build=false",
+    "is_debug=false",
+    "symbol_level=0",
+    "target_cpu=\"x64\"",
+    "use_custom_libcxx=false",
+    "use_siso=false"
+  ],
+  "runtime_artifacts": [
+    "bin/d3dcompiler_47.dll",
+    "bin/vulkan-1.dll"
+  ],
+  "shared_headers": "include",
+  "files": [
+    {
+      "path": "bin/d3dcompiler_47.dll",
+      "size": 4753864,
+      "sha256": "2c5bc040d1b3f7ca73fdb52f1624f005866b79d496b848216a898b59859b8035"
+    },
+    {
+      "path": "bin/libEGL.dll",
+      "size": 204800,
+      "sha256": "90f1bb9c971da6bbd66bc5a64b9501b565517d68ee38f58d46dfa44baafe65f1"
+    },
+    {
+      "path": "bin/libGLESv2.dll",
+      "size": 6746112,
+      "sha256": "21e1fc510f9d82b44e6cd3fc9352ad1435b32dfa9b0899fce42adfaa0afdfd69"
+    },
+    {
+      "path": "bin/vulkan-1.dll",
+      "size": 694784,
+      "sha256": "2332879d770f3e74a5da0b168a9b778f2f64d5dde78845eb1a49c99e014440db"
+    },
+    {
+      "path": "lib/libEGL.dll.lib",
+      "size": 28260,
+      "sha256": "5ec50d93738592a353f9bf6e19e2fae244e34726b461fdc6b01c4370246e9c41"
+    },
+    {
+      "path": "lib/libGLESv2.dll.lib",
+      "size": 411662,
+      "sha256": "44c5b71f00b4f51e3a2c3f0262806afcadc59698c2a9ac743cac0d1a0b78fc21"
+    },
+    {
+      "path": "licenses/ANGLE.txt",
+      "size": 1675,
+      "sha256": "54aff7276217df9f6b5181613999d208c9e40d2b1d51bf55217837e6871a4a63"
+    },
+    {
+      "path": "licenses/Microsoft-Windows-SDK.rtf",
+      "size": 248573,
+      "sha256": "0f4a26ac9dc50066f8a1bfeaaf3f092d1b9e4791df5487b9f3c31e7c3dc4d7f5"
+    },
+    {
+      "path": "licenses/third-party/ASTC-Encoder.txt",
+      "size": 10314,
+      "sha256": "a2aea85fac9ba9ed4985fe513d2b0d321c87a02c2a447c65f8e59dcfe79f55ed"
+    },
+    {
+      "path": "licenses/third-party/SPIRV-Tools.txt",
+      "size": 11358,
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+    },
+    {
+      "path": "licenses/third-party/Vulkan-Loader.txt",
+      "size": 11868,
+      "sha256": "557bd2cc07eff373f3f26c8d5726fefe8e7fc4add97796c2fbf24f74a200214a"
+    },
+    {
+      "path": "licenses/third-party/Vulkan-Memory-Allocator.txt",
+      "size": 1099,
+      "sha256": "cdb520614db3ec62e667ece01e64e6afa21948fa51e85e748b1494597a7be907"
+    },
+    {
+      "path": "licenses/third-party/xxHash.txt",
+      "size": 1415,
+      "sha256": "a2973411d278045bde3c7161b911e0680d53e2d73d6457c77068d2e55d816d67"
+    },
+    {
+      "path": "licenses/third-party/zlib.txt",
+      "size": 1002,
+      "sha256": "e32ff4e00d9d94930537635291da39e7e612703334bf6fde8c7f1686fe8a45a2"
+    }
+  ]
+}

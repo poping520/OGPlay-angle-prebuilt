@@ -1,0 +1,8 @@
+* -text
+
+*.dll binary
+*.lib binary
+*.dylib binary
+*.so binary
+*.pdb binary
+*.rtf binary
