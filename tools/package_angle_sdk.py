@@ -35,6 +35,14 @@ WINDOWS_RUNTIME_FILES = ("d3dcompiler_47.dll", "vulkan-1.dll")
 LINUX_RUNTIME_FILES = ("libvk_swiftshader.so", "vk_swiftshader_icd.json")
 MACOS_RUNTIME_FILES = ("libvk_swiftshader.dylib", "vk_swiftshader_icd.json")
 
+# ANGLE's Vulkan backend dlopens the Vulkan loader by basename at runtime. On
+# Linux the OGPlay test executable carries a RUNPATH into the SDK lib/ dir, so
+# the loader only looks there and never falls back to the system loader. The
+# Vulkan loader therefore must ship next to libEGL/libGLESv2 for the SDK to be
+# self-contained. Windows/macOS reach Vulkan through their own system loaders
+# (vulkan-1.dll / MoltenVK) and do not need this file.
+LINUX_VULKAN_LOADER = "libvulkan.so.1"
+
 
 def swiftshader_runtime_files(platform_name: str, gn_args: list) -> tuple[str, ...]:
     """Return the SwiftShader runtime files required for the platform, if any.
@@ -248,6 +256,16 @@ def package_sdk(
                 raise RuntimeError(f"ANGLE runtime dependency is missing: {runtime}")
             copy_file(runtime, destination, f"bin/{name}")
             runtime_artifacts.append(f"bin/{name}")
+        if (
+            platform_name == "linux"
+            and "angle_enable_vulkan=true" in build_manifest["gn_args"]
+        ):
+            loader = build / LINUX_VULKAN_LOADER
+            if not loader.is_file():
+                raise RuntimeError(
+                    f"ANGLE Vulkan loader dependency is missing: {loader}"
+                )
+            copy_file(loader, destination, f"lib/{LINUX_VULKAN_LOADER}")
         if platform_name == "windows" and include_symbols:
             for symbol in sorted(build.glob("*.pdb")):
                 copy_file(symbol, destination, f"symbols/{symbol.name}")

@@ -45,6 +45,11 @@
       "sha256": "24d1983d73b16f1b43f7a561f6290499ef54e3aa86c8c78fd20b71d844f1d1e5"
     },
     {
+      "path": "lib/libvulkan.so.1",
+      "size": 925504,
+      "sha256": "0f52114441ff4b745bec4e3ca803993b33f0aca630aab6e8363540d484c7bc1f"
+    },
+    {
       "path": "licenses/ANGLE.txt",
       "size": 1675,
       "sha256": "54aff7276217df9f6b5181613999d208c9e40d2b1d51bf55217837e6871a4a63"
