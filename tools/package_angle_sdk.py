@@ -10,6 +10,8 @@ from pathlib import Path, PurePosixPath
 import shutil
 import tempfile
 
+from android_exports import verify_android_exports
+
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_SOURCE = REPOSITORY_ROOT / "angle"
@@ -307,6 +309,8 @@ def package_sdk(
             "shared_licenses": "licenses",
             "files": manifest_files(destination),
         }
+        if "source_patches" in build_manifest:
+            manifest["source_patches"] = build_manifest["source_patches"]
         write_manifest(destination, manifest)
         verify_sdk(destination)
     except Exception:
@@ -365,6 +369,7 @@ def verify_sdk(sdk: Path) -> dict:
             if (header[:6] != b"\x7fELF\x02\x01"
                     or header[16:20] != b"\x03\x00\xb7\x00"):
                 raise RuntimeError(f"Android library must be an arm64 ELF shared object: {relative}")
+            verify_android_exports(sdk / relative)
     if "shared_licenses" in manifest:
         if manifest["shared_licenses"] != "licenses" or (sdk / "licenses").exists():
             raise RuntimeError("platform SDK must use the shared licenses directory")
@@ -422,9 +427,13 @@ def self_test() -> int:
             raise AssertionError("corrupt SDK unexpectedly verified")
         android_build = root / "android-build"
         android_build.mkdir()
-        elf = b"\x7fELF\x02\x01" + bytes(10) + b"\x03\x00\xb7\x00"
-        for name in ("libEGL_angle.so", "libGLESv2_angle.so"):
-            (android_build / name).write_bytes(elf)
+        from test_android_exports import make_android_elf
+        for name, exports in (
+            ("libEGL_angle.so", ["eglGetProcAddress", "eglInitialize", "eglCreateContext"]),
+            ("libGLESv2_angle.so", ["glGetString", "glDrawArrays", "EGL_GetProcAddress",
+                                    "ANGLEGetDisplayPlatform", "ANGLEResetDisplayPlatform"]),
+        ):
+            (android_build / name).write_bytes(make_android_elf(exports))
         (android_build / BUILD_MANIFEST).write_text(json.dumps({
             "angle_commit": commit,
             "platform": "android", "target_cpu": "arm64",
@@ -439,6 +448,15 @@ def self_test() -> int:
         assert {entry["path"] for entry in android_manifest["files"]} == {
             "lib/libEGL_angle.so", "lib/libGLESv2_angle.so"
         }
+        (android_build / "libEGL_angle.so").write_bytes(make_android_elf([
+            "eglGetProcAddress", "eglInitialize", "eglCreateContext", "unw_get_proc_info",
+        ]))
+        try:
+            package_sdk(android_build, root / "leaking-sdk", False)
+        except RuntimeError as error:
+            assert "exports private symbols" in str(error)
+        else:
+            raise AssertionError("Android library exporting unwinder unexpectedly packaged")
         (android_build / "libEGL_angle.so").write_bytes(b"wrong architecture")
         try:
             package_sdk(android_build, root / "invalid-sdk", False)

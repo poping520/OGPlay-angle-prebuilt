@@ -1,0 +1,51 @@
+--- a/gni/angle.gni
++++ b/gni/angle.gni
+@@ -22,6 +22,9 @@
+ declare_args() {
+   # Extract native libs in ANGLE apk. Useful for flamegraph generation.
+   angle_extract_native_libs = false
++
++  # OGPlay SDK: isolate the private C++ runtime from the Android host.
++  ogplay_android_hide_runtime_exports = false
+ 
+   # Display mode for ANGLE vulkan display, could be 'simple' or 'headless',
+   # default is 'simple'.
+@@ -567,6 +570,15 @@
+     if (is_android) {
+       configs += [ angle_root + ":build_id_config" ]
+       configs -= [ "//build/config/android:hide_all_but_jni_onload" ]
++      if (ogplay_android_hide_runtime_exports &&
++          (target_name == "libEGL" || target_name == "libGLESv2")) {
++        _exports = "$angle_root/src/$target_name/ogplay_android.exports"
++        inputs = [ _exports ]
++        ldflags = [
++          "-Wl,--version-script=" + rebase_path(_exports, root_build_dir),
++          "-Wl,--exclude-libs=libunwind.a",
++        ]
++      }
+     }
+     if (is_ios) {
+       info_plist = "$angle_root/util/ios/Info.plist"
+--- /dev/null
++++ b/src/libEGL/ogplay_android.exports
+@@ -0,0 +1,7 @@
++# OGPlay Android SDK public API; keep the private runtime local.
++{
++  global:
++    egl[A-Z]*;
++  local:
++    *;
++};
+--- /dev/null
++++ b/src/libGLESv2/ogplay_android.exports
+@@ -0,0 +1,10 @@
++# OGPlay Android SDK public API; keep the private runtime local.
++{
++  global:
++    gl[A-Z]*;
++    EGL_*;
++    ANGLEGetDisplayPlatform;
++    ANGLEResetDisplayPlatform;
++  local:
++    *;
++};

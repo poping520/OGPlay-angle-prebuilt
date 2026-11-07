@@ -51,6 +51,20 @@ Vulkan loader 由 Android 系统提供，不打包桌面 `libvulkan.so.1`。
 公共头文件和许可证仍使用根目录 `include/`、`licenses/`；打包时会校验库为 arm64 ELF。
 这是供应用链接/加载的原生库 SDK，构建目标为 `libEGL`、`libGLESv2`。
 
+Android 构建脚本会自动、幂等地应用
+[`patches/android-private-runtime.patch`](patches/android-private-runtime.patch)，并开启
+`ogplay_android_hide_runtime_exports=true`。链接器使用 version script 仅导出 EGL/GLES
+接口、`libEGL` 动态加载所需的 `EGL_*` 分发入口及两个 ANGLE 平台接口；同时使用
+`--exclude-libs=libunwind.a`。其余符号（包括 `_Unwind_*`、`unw_*`、C++ 运行库）
+保持库内可见，防止与宿主 NDK libc++ 的异常展开实现发生 ABI 冲突。参见
+[NDK 官方 Unwinding 说明](https://android.googlesource.com/platform/ndk/+/master/docs/BuildSystemMaintainers.md#Unwinding)。
+固定的上游 commit 不变，构建及 SDK 清单另记补丁路径和 SHA-256。
+
+更新已有 Android 输出时，先执行 `configure`，再执行 `build` 和 `verify`。
+构建验证、打包及 SDK 复验均检查 ELF 动态导出表，拒绝导出私有运行库符号或缺失
+关键接口的库。主机校验不替代实机回归：集成后应使用宿主 NDK 的 `libc++_shared.so`
+运行“抛异常＋析构清理”用例，并覆盖链接 ANGLE 及动态加载 ANGLE 的路径。
+
 ## 打包
 
 公共头文件和许可证与平台二进制分开打包，各平台共用 `include/` 和 `licenses/`。
@@ -86,6 +100,7 @@ python tools/package_angle_sdk.py verify \
 ```text
 python tools/build_angle.py --self-test
 python tools/package_angle_sdk.py --self-test
+python tools/test_android_exports.py
 python tools/package_angle_sdk.py verify-headers
 python tools/package_angle_sdk.py verify-licenses
 python tools/package_angle_sdk.py verify --sdk linux-x64/release

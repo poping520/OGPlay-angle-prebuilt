@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -14,12 +15,15 @@ import subprocess
 import sys
 from typing import Iterable, Sequence
 
+from android_exports import verify_android_exports
+
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_SOURCE = REPOSITORY_ROOT / "angle"
 DEFAULT_OUTPUT = DEFAULT_SOURCE / "out" / "ogplay"
 TARGETS = ("libEGL", "libGLESv2")
 PINNED_ANGLE_COMMIT = "c24d9971269a878a221238a5923abdcc933fa2e9"
+ANDROID_PATCH = REPOSITORY_ROOT / "tools/patches/android-private-runtime.patch"
 
 
 def detect_platform() -> str:
@@ -72,6 +76,7 @@ def gn_args_for(platform_name: str, target_cpu: str, debug: bool) -> tuple[str, 
             "android_ndk_api_level": "23",
             "default_min_sdk_version": "23",
             "arm_control_flow_integrity": json.dumps("none"),
+            "ogplay_android_hide_runtime_exports": "true",
             "angle_enable_swiftshader": "false",
             "is_clang": "true",
             "use_siso": "false",
@@ -154,6 +159,18 @@ def verify_checkout(source: Path) -> str:
     return actual
 
 
+def prepare_android_patch(source: Path, env: dict[str, str], dry_run: bool) -> None:
+    # Reverse-check makes repeated configure/build/verify invocations idempotent.
+    reverse = subprocess.run(
+        ["git", "apply", "--reverse", "--check", str(ANDROID_PATCH)],
+        cwd=source, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+    )
+    if reverse.returncode == 0:
+        return
+    run(["git", "apply", "--check", str(ANDROID_PATCH)], source, env, dry_run)
+    run(["git", "apply", str(ANDROID_PATCH)], source, env, dry_run)
+
+
 def expected_artifact_groups(platform_name: str) -> tuple[tuple[str, ...], ...]:
     if platform_name == "windows":
         return (
@@ -185,6 +202,9 @@ def verify_artifacts(output: Path, platform_name: str) -> tuple[str, ...]:
         raise RuntimeError(
             f"ANGLE output is incomplete at {output}; missing: {', '.join(missing)}"
         )
+    if platform_name == "android":
+        for name in artifacts:
+            verify_android_exports(output / name)
     return tuple(artifacts)
 
 
@@ -207,6 +227,11 @@ def write_manifest(
         "targets": list(TARGETS),
         "artifacts": list(artifacts),
     }
+    if platform_name == "android":
+        manifest["source_patches"] = [{
+            "path": str(ANDROID_PATCH.relative_to(REPOSITORY_ROOT)),
+            "sha256": hashlib.sha256(ANDROID_PATCH.read_bytes()).hexdigest(),
+        }]
     path = output / "ogplay-angle-manifest.json"
     path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
     print(f"verified ANGLE output; manifest: {path}")
@@ -240,6 +265,8 @@ def self_test() -> int:
     assert 'target_os="android"' in android
     assert "android_ndk_api_level=23" in android
     assert "default_min_sdk_version=23" in android
+    assert "ogplay_android_hide_runtime_exports=true" in android
+    assert not any(arg.startswith("ogplay_android_") for arg in windows)
     assert "angle_enable_swiftshader=false" in android
     assert expected_artifact_groups("android") == (("libEGL_angle.so",), ("libGLESv2_angle.so",))
     assert "--deps=android" in gclient_sync_command("gclient", 2, "android")
@@ -309,6 +336,9 @@ def main() -> int:
         run(gclient_sync_command(gclient, args.jobs, platform_name), source, env, args.dry_run)
         if not args.dry_run:
             commit = verify_checkout(source)
+
+    if platform_name == "android" and args.action in {"all", "configure", "build", "verify"}:
+        prepare_android_patch(source, env, args.dry_run)
 
     if args.action in {"all", "configure"}:
         gn = resolve_tool("gn", depot_tools)

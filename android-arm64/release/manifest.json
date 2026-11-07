@@ -18,6 +18,7 @@
     "is_clang=true",
     "is_component_build=false",
     "is_debug=false",
+    "ogplay_android_hide_runtime_exports=true",
     "symbol_level=0",
     "target_cpu=\"arm64\"",
     "target_os=\"android\"",
@@ -29,13 +30,19 @@
   "files": [
     {
       "path": "lib/libEGL_angle.so",
-      "size": 308776,
-      "sha256": "1a93af469c42c3866b0d2e1c14f11b01b82f60f1324ce7cd8b0166890b5bc6de"
+      "size": 300424,
+      "sha256": "088e827c49311dbb50e92f2be46dc682a7440bb2c2e4d040de5b138f510ee127"
     },
     {
       "path": "lib/libGLESv2_angle.so",
-      "size": 5585024,
-      "sha256": "6bf436d6f2436788cc2e1ce8d870cee5b63fbbe931116c954af5734af56770e5"
+      "size": 5487360,
+      "sha256": "23c8bf941d3a0bb1e501bdec05e4080d2adf09ad6444563fbdadb59a10ba9940"
+    }
+  ],
+  "source_patches": [
+    {
+      "path": "tools/patches/android-private-runtime.patch",
+      "sha256": "a573f1de597bdeb1307034771e6c2df6bb1eecec7cfb995b3acb1fb300248e85"
     }
   ]
 }
