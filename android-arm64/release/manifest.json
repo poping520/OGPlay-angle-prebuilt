@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "angle_commit": "c24d9971269a878a221238a5923abdcc933fa2e9",
+  "platform": "android",
+  "target_cpu": "arm64",
+  "configuration": "release",
+  "gn_args": [
+    "android_ndk_api_level=23",
+    "angle_build_tests=false",
+    "angle_enable_cl=false",
+    "angle_enable_gl=false",
+    "angle_enable_null=false",
+    "angle_enable_swiftshader=false",
+    "angle_enable_vulkan=true",
+    "angle_enable_wgpu=false",
+    "arm_control_flow_integrity=\"none\"",
+    "default_min_sdk_version=23",
+    "is_clang=true",
+    "is_component_build=false",
+    "is_debug=false",
+    "symbol_level=0",
+    "target_cpu=\"arm64\"",
+    "target_os=\"android\"",
+    "use_siso=false"
+  ],
+  "runtime_artifacts": [],
+  "shared_headers": "include",
+  "shared_licenses": "licenses",
+  "files": [
+    {
+      "path": "lib/libEGL_angle.so",
+      "size": 308776,
+      "sha256": "1a93af469c42c3866b0d2e1c14f11b01b82f60f1324ce7cd8b0166890b5bc6de"
+    },
+    {
+      "path": "lib/libGLESv2_angle.so",
+      "size": 5585024,
+      "sha256": "6bf436d6f2436788cc2e1ce8d870cee5b63fbbe931116c954af5734af56770e5"
+    }
+  ]
+}

@@ -13,3 +13,6 @@
 直接修改二进制或清单。维护者可把固定 ANGLE checkout 放在本地 `angle/`，原始归档放在
 `angle.zip`；两者均由 `.gitignore` 排除，不会进入远端仓库。具体流程见
 [`tools/README.md`](tools/README.md)。
+
+支持 Windows x64、Linux x64、macOS arm64/x64，以及 Android arm64（`arm64-v8a`）。
+Android 构建需在 Linux 上执行，命令与集成说明见 [`tools/README.md`](tools/README.md#android-arm64)。

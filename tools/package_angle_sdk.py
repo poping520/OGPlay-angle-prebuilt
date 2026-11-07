@@ -349,7 +349,22 @@ def verify_sdk(sdk: Path) -> dict:
         raise RuntimeError(
             f"platform SDK must not embed include/; use shared headers instead: {sdk / 'include'}"
         )
-    verify_manifest_files(sdk, manifest.get("files"))
+    declared = verify_manifest_files(sdk, manifest.get("files"))
+    if manifest.get("platform") == "android":
+        if manifest.get("target_cpu") != "arm64":
+            raise RuntimeError("Android SDK currently supports only arm64")
+        if 'target_os="android"' not in manifest.get("gn_args", []):
+            raise RuntimeError("Android SDK must be built with target_os=android")
+        for library in ("libEGL_angle.so", "libGLESv2_angle.so"):
+            relative = f"lib/{library}"
+            if relative not in declared:
+                raise RuntimeError(f"Android SDK is missing {relative}")
+            with (sdk / relative).open("rb") as stream:
+                header = stream.read(20)
+            # ELF64, little endian, ET_DYN, EM_AARCH64.
+            if (header[:6] != b"\x7fELF\x02\x01"
+                    or header[16:20] != b"\x03\x00\xb7\x00"):
+                raise RuntimeError(f"Android library must be an arm64 ELF shared object: {relative}")
     if "shared_licenses" in manifest:
         if manifest["shared_licenses"] != "licenses" or (sdk / "licenses").exists():
             raise RuntimeError("platform SDK must use the shared licenses directory")
@@ -405,6 +420,32 @@ def self_test() -> int:
             assert "integrity check" in str(error)
         else:
             raise AssertionError("corrupt SDK unexpectedly verified")
+        android_build = root / "android-build"
+        android_build.mkdir()
+        elf = b"\x7fELF\x02\x01" + bytes(10) + b"\x03\x00\xb7\x00"
+        for name in ("libEGL_angle.so", "libGLESv2_angle.so"):
+            (android_build / name).write_bytes(elf)
+        (android_build / BUILD_MANIFEST).write_text(json.dumps({
+            "angle_commit": commit,
+            "platform": "android", "target_cpu": "arm64",
+            "configuration": "release",
+            "gn_args": ['target_os="android"', "angle_enable_vulkan=true",
+                        "angle_enable_swiftshader=false"],
+            "artifacts": ["libEGL_angle.so", "libGLESv2_angle.so"],
+        }), encoding="utf-8")
+        android_sdk = package_sdk(android_build, root / "sdk", False)
+        android_manifest = verify_sdk(android_sdk)
+        assert android_manifest["runtime_artifacts"] == []
+        assert {entry["path"] for entry in android_manifest["files"]} == {
+            "lib/libEGL_angle.so", "lib/libGLESv2_angle.so"
+        }
+        (android_build / "libEGL_angle.so").write_bytes(b"wrong architecture")
+        try:
+            package_sdk(android_build, root / "invalid-sdk", False)
+        except RuntimeError as error:
+            assert "arm64 ELF" in str(error)
+        else:
+            raise AssertionError("non-arm64 Android library unexpectedly packaged")
     print("ANGLE SDK packager self-test passed")
     return 0
 

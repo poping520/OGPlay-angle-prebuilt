@@ -16,6 +16,41 @@ python tools/build_angle.py verify
 默认产物位于 `angle/out/ogplay`，验证后写入包含源码 commit、平台、CPU、配置、GN 参数和
 核心产物的 `ogplay-angle-manifest.json`。
 
+## Android arm64
+
+在 Linux 主机上构建 Android `arm64-v8a` 动态库，沿用脚本固定的 ANGLE commit。
+按 [ANGLE 官方 Android 构建说明](https://chromium.googlesource.com/angle/angle/+/c24d9971269a878a221238a5923abdcc933fa2e9/doc/DevSetupAndroid.md)
+使用 Chromium 配套 Clang、Android NDK 和 SDK，不依赖系统安装的 Android Studio。
+`sync` 自动传入 `--deps=android`，下载该 commit 的 Android 依赖。
+新增的本地工具请放在仓库 `.local/`（例如 `.local/depot_tools`），gclient 管理的
+工具链依赖仍使用 ANGLE checkout 内的官方路径；这些目录都不会提交。
+现有 `depot_tools/` 和已同步的 Android 依赖也可直接复用。
+
+```sh
+# 新环境需要 depot_tools；已有时跳过 clone，并使用实际路径。
+git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git .local/depot_tools
+python3 tools/build_angle.py all --platform android --depot-tools .local/depot_tools --jobs 3
+
+# 已同步依赖时，可分别执行 configure / build / verify。
+python3 tools/build_angle.py verify --platform android
+python3 tools/package_angle_sdk.py package-licenses --licenses .local/angle-sdk/licenses
+python3 tools/package_angle_sdk.py package --build angle/out/ogplay-android-arm64
+python3 tools/package_angle_sdk.py verify --sdk .local/angle-sdk/android-arm64/release
+```
+
+若暂存的公共许可证已存在，跳过 `package-licenses`，直接复验即可。
+Android 默认 CPU 为 `arm64`，输出为 `angle/out/ogplay-android-arm64`，不会覆盖桌面
+`out/ogplay`。当前只支持 Android arm64；默认 Release、Vulkan 后端、关闭 SwiftShader，
+显式设置 `android_ndk_api_level=23` 和 `default_min_sdk_version=23`（Android 6）。
+Vulkan 后端仍要求设备提供兼容的 Vulkan 驱动，API 23 编译不代表所有 Android 6 设备都能运行。
+不设置 `--output` 时 Debug/Release 共用该 Android 构建目录，需要保留两者时分别指定输出。
+
+平台包位于 `android-arm64/release/lib/`，包含 `libEGL_angle.so` 和 `libGLESv2_angle.so`（保留上游 Android 后缀以区别系统库）；
+应用应把它们一起放入 APK 的 `lib/arm64-v8a/`（例如项目的 `jniLibs/arm64-v8a/`）。
+Vulkan loader 由 Android 系统提供，不打包桌面 `libvulkan.so.1`。
+公共头文件和许可证仍使用根目录 `include/`、`licenses/`；打包时会校验库为 arm64 ELF。
+这是供应用链接/加载的原生库 SDK，构建目标为 `libEGL`、`libGLESv2`。
+
 ## 打包
 
 公共头文件和许可证与平台二进制分开打包，各平台共用 `include/` 和 `licenses/`。
@@ -57,4 +92,5 @@ python tools/package_angle_sdk.py verify --sdk linux-x64/release
 python tools/package_angle_sdk.py verify --sdk windows-x64/release
 python tools/package_angle_sdk.py verify --sdk macos-arm64/release
 python tools/package_angle_sdk.py verify --sdk macos-x64/release
+python tools/package_angle_sdk.py verify --sdk android-arm64/release
 ```

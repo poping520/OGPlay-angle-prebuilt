@@ -64,6 +64,18 @@ def gn_args_for(platform_name: str, target_cpu: str, debug: bool) -> tuple[str, 
             # outside the workspace when building with system MSVC.
             "use_siso": "false",
         })
+    elif platform_name == "android":
+        if target_cpu != "arm64":
+            raise ValueError("Android SDK currently supports only arm64")
+        args.update({
+            "target_os": json.dumps("android"),
+            "android_ndk_api_level": "23",
+            "default_min_sdk_version": "23",
+            "arm_control_flow_integrity": json.dumps("none"),
+            "angle_enable_swiftshader": "false",
+            "is_clang": "true",
+            "use_siso": "false",
+        })
     elif platform_name == "linux":
         args.update({
             "angle_enable_swiftshader": "true",
@@ -89,8 +101,12 @@ def command_text(command: Sequence[str]) -> str:
     return shlex.join(command)
 
 
-def gclient_sync_command(gclient: str, jobs: int | None) -> list[str]:
+def gclient_sync_command(
+    gclient: str, jobs: int | None, platform_name: str | None = None
+) -> list[str]:
     command = [gclient, "sync", "--no-history"]
+    if platform_name == "android":
+        command.append("--deps=android")
     if jobs:
         command.append(f"--jobs={jobs}")
     return command
@@ -146,6 +162,8 @@ def expected_artifact_groups(platform_name: str) -> tuple[tuple[str, ...], ...]:
         )
     if platform_name == "macos":
         return (("libEGL.dylib",), ("libGLESv2.dylib",))
+    if platform_name == "android":
+        return (("libEGL_angle.so",), ("libGLESv2_angle.so",))
     if platform_name == "linux":
         return (
             ("libEGL.so", "libEGL.so.1"),
@@ -218,6 +236,13 @@ def self_test() -> int:
     assert gclient_sync_command("gclient", 4) == [
         "gclient", "sync", "--no-history", "--jobs=4"
     ]
+    android = gn_args_for("android", "arm64", False)
+    assert 'target_os="android"' in android
+    assert "android_ndk_api_level=23" in android
+    assert "default_min_sdk_version=23" in android
+    assert "angle_enable_swiftshader=false" in android
+    assert expected_artifact_groups("android") == (("libEGL_angle.so",), ("libGLESv2_angle.so",))
+    assert "--deps=android" in gclient_sync_command("gclient", 2, "android")
     assert len(PINNED_ANGLE_COMMIT) == 40
     print("ANGLE build driver self-test passed")
     return 0
@@ -230,10 +255,10 @@ def parse_args() -> argparse.Namespace:
         choices=("all", "sync", "configure", "build", "verify", "print-config"),
     )
     parser.add_argument("--source", type=Path, default=DEFAULT_SOURCE)
-    parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
+    parser.add_argument("--output", type=Path, help="default: angle/out/ogplay (Android: ogplay-android-arm64)")
     parser.add_argument("--depot-tools", type=Path)
     parser.add_argument(
-        "--platform", choices=("auto", "windows", "linux", "macos"), default="auto"
+        "--platform", choices=("auto", "windows", "linux", "macos", "android"), default="auto"
     )
     parser.add_argument("--target-cpu", choices=("auto", "x64", "arm64"), default="auto")
     parser.add_argument("--debug", action="store_true")
@@ -251,10 +276,15 @@ def main() -> int:
         raise ValueError("--jobs must be positive")
 
     source = args.source.resolve()
-    output = args.output.resolve()
     depot_tools = args.depot_tools.resolve() if args.depot_tools else None
     platform_name = detect_platform() if args.platform == "auto" else args.platform
-    target_cpu = detect_target_cpu() if args.target_cpu == "auto" else args.target_cpu
+    target_cpu = args.target_cpu
+    if target_cpu == "auto":
+        target_cpu = "arm64" if platform_name == "android" else detect_target_cpu()
+    output_name = "ogplay-android-arm64" if platform_name == "android" else "ogplay"
+    output = (args.output or source / "out" / output_name).resolve()
+    if platform_name == "android" and detect_platform() != "linux":
+        raise RuntimeError("Android builds require a Linux host")
     gn_args = gn_args_for(platform_name, target_cpu, args.debug)
 
     if not (source / "scripts" / "bootstrap.py").is_file():
@@ -276,7 +306,7 @@ def main() -> int:
         if not (source / ".gclient").is_file():
             run([sys.executable, str(source / "scripts" / "bootstrap.py")], source, env,
                 args.dry_run)
-        run(gclient_sync_command(gclient, args.jobs), source, env, args.dry_run)
+        run(gclient_sync_command(gclient, args.jobs, platform_name), source, env, args.dry_run)
         if not args.dry_run:
             commit = verify_checkout(source)
 
@@ -285,6 +315,17 @@ def main() -> int:
         output.mkdir(parents=True, exist_ok=True)
         run([gn, "gen", str(output), f"--args={' '.join(gn_args)}"], source, env,
             args.dry_run)
+
+    if platform_name == "android" and args.action in {"all", "build", "verify"} and not args.dry_run:
+        configured = {}
+        for line in (output / "args.gn").read_text(encoding="utf-8").splitlines():
+            name, separator, value = line.partition("=")
+            if separator:
+                configured[name.strip()] = value.strip()
+        if any(configured.get(name) != value
+               for argument in gn_args
+               for name, value in [argument.split("=", 1)]):
+            raise RuntimeError("Android output GN args differ; run configure with the same options first")
 
     if args.action in {"all", "build"}:
         autoninja = resolve_tool("autoninja", depot_tools)
