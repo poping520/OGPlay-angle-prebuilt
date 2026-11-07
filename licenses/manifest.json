@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "kind": "licenses",
+  "angle_commit": "c24d9971269a878a221238a5923abdcc933fa2e9",
+  "files": [
+    {
+      "path": "ANGLE.txt",
+      "size": 1675,
+      "sha256": "54aff7276217df9f6b5181613999d208c9e40d2b1d51bf55217837e6871a4a63"
+    },
+    {
+      "path": "Microsoft-Windows-SDK.rtf",
+      "size": 248573,
+      "sha256": "0f4a26ac9dc50066f8a1bfeaaf3f092d1b9e4791df5487b9f3c31e7c3dc4d7f5"
+    },
+    {
+      "path": "third-party/ASTC-Encoder.txt",
+      "size": 10139,
+      "sha256": "494accc32e50eb523a0e384d0ae6d4b702db867a89d6971216760e92b240ee12"
+    },
+    {
+      "path": "third-party/SPIRV-Tools.txt",
+      "size": 11358,
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+    },
+    {
+      "path": "third-party/Vulkan-Loader.txt",
+      "size": 11661,
+      "sha256": "43c0a37e6a0fa7ff3c843b3ec5a4fac84b712558ddac103fbd4c1649662a9ece"
+    },
+    {
+      "path": "third-party/Vulkan-Memory-Allocator.txt",
+      "size": 1099,
+      "sha256": "cdb520614db3ec62e667ece01e64e6afa21948fa51e85e748b1494597a7be907"
+    },
+    {
+      "path": "third-party/xxHash.txt",
+      "size": 1415,
+      "sha256": "a2973411d278045bde3c7161b911e0680d53e2d73d6457c77068d2e55d816d67"
+    },
+    {
+      "path": "third-party/zlib.txt",
+      "size": 1002,
+      "sha256": "e32ff4e00d9d94930537635291da39e7e612703334bf6fde8c7f1686fe8a45a2"
+    }
+  ]
+}

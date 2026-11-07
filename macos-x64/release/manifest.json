@@ -25,6 +25,7 @@
     "bin/vk_swiftshader_icd.json"
   ],
   "shared_headers": "include",
+  "shared_licenses": "licenses",
   "files": [
     {
       "path": "bin/libvk_swiftshader.dylib",
@@ -45,41 +46,6 @@
       "path": "lib/libGLESv2.dylib",
       "size": 8967312,
       "sha256": "fb494d8a05e4d50cab6910aa6dc551edce6abe9f20f968069005dc41b0d2efb4"
-    },
-    {
-      "path": "licenses/ANGLE.txt",
-      "size": 1675,
-      "sha256": "54aff7276217df9f6b5181613999d208c9e40d2b1d51bf55217837e6871a4a63"
-    },
-    {
-      "path": "licenses/third-party/ASTC-Encoder.txt",
-      "size": 10314,
-      "sha256": "a2aea85fac9ba9ed4985fe513d2b0d321c87a02c2a447c65f8e59dcfe79f55ed"
-    },
-    {
-      "path": "licenses/third-party/SPIRV-Tools.txt",
-      "size": 11560,
-      "sha256": "3ddf9be5c28fe27dad143a5dc76eea25222ad1dd68934a047064e56ed2fa40c5"
-    },
-    {
-      "path": "licenses/third-party/Vulkan-Loader.txt",
-      "size": 11868,
-      "sha256": "557bd2cc07eff373f3f26c8d5726fefe8e7fc4add97796c2fbf24f74a200214a"
-    },
-    {
-      "path": "licenses/third-party/Vulkan-Memory-Allocator.txt",
-      "size": 1118,
-      "sha256": "2f4916bd127e21a3d5cfe77bcb38266322e73d98824e5c3b2a74e9667ce8a6a8"
-    },
-    {
-      "path": "licenses/third-party/xxHash.txt",
-      "size": 1415,
-      "sha256": "a2973411d278045bde3c7161b911e0680d53e2d73d6457c77068d2e55d816d67"
-    },
-    {
-      "path": "licenses/third-party/zlib.txt",
-      "size": 1024,
-      "sha256": "439c75ab12b340c5362b9d4b08ff05ec3a4d0eb7667a6fff49a9b16d8795c78e"
     }
   ]
 }

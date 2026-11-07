@@ -16,6 +16,7 @@ DEFAULT_SOURCE = REPOSITORY_ROOT / "angle"
 DEFAULT_BUILD = DEFAULT_SOURCE / "out" / "ogplay"
 DEFAULT_DESTINATION = REPOSITORY_ROOT / ".local" / "angle-sdk"
 DEFAULT_HEADERS = REPOSITORY_ROOT / "include"
+DEFAULT_LICENSES = REPOSITORY_ROOT / "licenses"
 BUILD_MANIFEST = "ogplay-angle-manifest.json"
 SDK_MANIFEST = "manifest.json"
 HEADER_DIRECTORIES = ("EGL", "GLES", "GLES2", "GLES3", "KHR")
@@ -111,12 +112,12 @@ def copy_licenses(
     for source_name, destination_name in LICENSE_SOURCES:
         license_path = source / source_name
         if license_path.is_file():
-            copy_file(license_path, destination, f"licenses/{destination_name}")
+            copy_file(license_path, destination, destination_name)
     if windows_sdk_license is not None:
         if not windows_sdk_license.is_file():
             raise RuntimeError(f"Windows SDK license is missing: {windows_sdk_license}")
         copy_file(
-            windows_sdk_license, destination, "licenses/Microsoft-Windows-SDK.rtf"
+            windows_sdk_license, destination, "Microsoft-Windows-SDK.rtf"
         )
 
 
@@ -215,12 +216,35 @@ def package_headers(
     return destination
 
 
-def package_sdk(
+def package_licenses(
     source: Path,
+    destination: Path,
+    windows_sdk_license: Path | None,
+    angle_commit: str | None = None,
+) -> Path:
+    if destination.exists():
+        raise RuntimeError(f"licenses destination already exists: {destination}")
+    commit = angle_commit or git_commit(source)
+    destination.mkdir(parents=True)
+    try:
+        copy_licenses(source, destination, windows_sdk_license)
+        write_manifest(destination, {
+            "schema_version": 1,
+            "kind": "licenses",
+            "angle_commit": commit,
+            "files": manifest_files(destination),
+        })
+        verify_licenses(destination)
+    except Exception:
+        shutil.rmtree(destination)
+        raise
+    return destination
+
+
+def package_sdk(
     build: Path,
     destination_root: Path,
     include_symbols: bool,
-    windows_sdk_license: Path | None,
 ) -> Path:
     build_manifest = read_json(build / BUILD_MANIFEST)
     required = ("angle_commit", "platform", "target_cpu", "configuration", "gn_args")
@@ -269,7 +293,6 @@ def package_sdk(
         if platform_name == "windows" and include_symbols:
             for symbol in sorted(build.glob("*.pdb")):
                 copy_file(symbol, destination, f"symbols/{symbol.name}")
-        copy_licenses(source, destination, windows_sdk_license)
         if (destination / "include").exists():
             raise RuntimeError("platform SDK must not contain include/; use shared headers")
         manifest = {
@@ -281,6 +304,7 @@ def package_sdk(
             "gn_args": build_manifest["gn_args"],
             "runtime_artifacts": runtime_artifacts,
             "shared_headers": "include",
+            "shared_licenses": "licenses",
             "files": manifest_files(destination),
         }
         write_manifest(destination, manifest)
@@ -306,6 +330,17 @@ def verify_headers(headers: Path) -> dict:
     return manifest
 
 
+def verify_licenses(licenses: Path) -> dict:
+    manifest = read_json(licenses / SDK_MANIFEST)
+    if manifest.get("schema_version") != 1 or manifest.get("kind") != "licenses":
+        raise RuntimeError(f"unsupported ANGLE licenses manifest: {licenses}")
+    if not manifest.get("angle_commit"):
+        raise RuntimeError("licenses manifest is missing angle_commit")
+    if "ANGLE.txt" not in verify_manifest_files(licenses, manifest.get("files")):
+        raise RuntimeError("licenses package is missing ANGLE.txt")
+    return manifest
+
+
 def verify_sdk(sdk: Path) -> dict:
     manifest = read_json(sdk / SDK_MANIFEST)
     if manifest.get("schema_version") != 1:
@@ -315,6 +350,12 @@ def verify_sdk(sdk: Path) -> dict:
             f"platform SDK must not embed include/; use shared headers instead: {sdk / 'include'}"
         )
     verify_manifest_files(sdk, manifest.get("files"))
+    if "shared_licenses" in manifest:
+        if manifest["shared_licenses"] != "licenses" or (sdk / "licenses").exists():
+            raise RuntimeError("platform SDK must use the shared licenses directory")
+        licenses = verify_licenses(sdk.parent.parent / "licenses")
+        if licenses["angle_commit"] != manifest.get("angle_commit"):
+            raise RuntimeError("shared licenses and platform SDK use different ANGLE commits")
     return manifest
 
 
@@ -350,7 +391,8 @@ def self_test() -> int:
         assert headers_manifest["kind"] == "headers"
         assert headers_manifest["angle_commit"] == commit
         assert (headers / "EGL" / "egl.h").is_file()
-        sdk = package_sdk(source, build, root / "sdk", False, None)
+        package_licenses(source, root / "sdk" / "licenses", None, angle_commit=commit)
+        sdk = package_sdk(build, root / "sdk", False)
         manifest = verify_sdk(sdk)
         assert manifest["platform"] == "windows"
         assert manifest.get("shared_headers") == "include"
@@ -372,7 +414,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "action",
         nargs="?",
-        choices=("package", "package-headers", "verify", "verify-headers"),
+        choices=("package", "package-headers", "package-licenses", "verify", "verify-headers", "verify-licenses"),
         default="package",
     )
     parser.add_argument("--source", type=Path, default=DEFAULT_SOURCE)
@@ -380,10 +422,14 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--destination", type=Path, default=DEFAULT_DESTINATION)
     parser.add_argument("--sdk", type=Path)
     parser.add_argument("--headers", type=Path, default=DEFAULT_HEADERS)
+    parser.add_argument("--licenses", type=Path, default=DEFAULT_LICENSES)
     parser.add_argument("--include-symbols", action="store_true")
     parser.add_argument("--windows-sdk-license", type=Path)
     parser.add_argument("--self-test", action="store_true")
-    return parser.parse_args()
+    args = parser.parse_args()
+    if args.windows_sdk_license and args.action != "package-licenses":
+        parser.error("--windows-sdk-license requires package-licenses")
+    return args
 
 
 def main() -> int:
@@ -405,10 +451,18 @@ def main() -> int:
         destination = package_headers(args.source.resolve(), args.headers.resolve())
         print(f"packaged ANGLE headers: {destination}")
         return 0
-    destination = package_sdk(
-        args.source.resolve(), args.build.resolve(), args.destination.resolve(),
-        args.include_symbols, args.windows_sdk_license.resolve() if args.windows_sdk_license else None,
-    )
+    if args.action == "verify-licenses":
+        licenses = args.licenses.resolve()
+        verify_licenses(licenses)
+        print(f"verified ANGLE licenses: {licenses}")
+        return 0
+    if args.action == "package-licenses":
+        destination = package_licenses(
+            args.source.resolve(), args.licenses.resolve(), args.windows_sdk_license
+        )
+        print(f"packaged ANGLE licenses: {destination}")
+        return 0
+    destination = package_sdk(args.build.resolve(), args.destination.resolve(), args.include_symbols)
     print(f"packaged ANGLE SDK: {destination}")
     return 0
 
